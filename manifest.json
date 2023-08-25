@@ -1,0 +1,9 @@
+{
+  "background_color": "#ffd700",
+  "display": "standalone",
+  "lang": "en",
+  "name": "Memorise",
+  "short_name": "Memorise",
+  "start_url": "/pwa-memorise?utm_source=web_app_manifest",
+  "orientation": "portrait"
+}
