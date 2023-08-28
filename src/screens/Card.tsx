@@ -119,7 +119,7 @@ export default function Card({ navigation, route }) {
                     setSecret(Math.floor(Math.random() * 2) + 1);
                     setTrainingStep(0);
                     let pivot = (shufflePivot + 1) % localCards.length;
-                    setCard(localCards[pivot]);
+                    setCard(localCards[shuffled[pivot]]);
                     setShufflePivot(pivot);
                   }
                 }}
