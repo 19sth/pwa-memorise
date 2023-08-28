@@ -3,11 +3,15 @@ import {
   ColorScheme,
   ContentView,
   Header,
+  Input,
+  InputTypes,
   Layout,
+  Modal,
+  Settings,
   SizeScheme,
   Takoz,
 } from "@19sth/react-native-pieces";
-import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { View, Text } from "react-native";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
@@ -23,6 +27,7 @@ export default function Card({ navigation, route }) {
   const [shufflePivot, setShufflePivot] = useState(0);
   const [trainingStep, setTrainingStep] = useState(0); // 0 new word, 1 revealed
   const [secret, setSecret] = useState(2); // 0 no secret, 1 key secret, 2 value secret
+  const [showModal, setShowModal] = useState(false);
 
   const load = async () => {
     const topicsLocal = JSON.parse((await asyncTopics.getItem()) || "[]");
@@ -60,10 +65,19 @@ export default function Card({ navigation, route }) {
       faIcon: faTrashCan,
       handleClick: async () => {
         const localTopics = [...topics];
-        localTopics[route.params.topicIndex].cards.splice(route.params.cardIndex,1);
+        localTopics[route.params.topicIndex].cards.splice(
+          route.params.cardIndex,
+          1
+        );
         await asyncTopics.setItem(JSON.stringify(localTopics));
         navigation.goBack();
       },
+    });
+    buttons.push({
+      faIcon: faPen,
+      handleClick: async () => {
+        setShowModal(true);
+      }
     });
   }
 
@@ -71,7 +85,13 @@ export default function Card({ navigation, route }) {
     <Layout>
       <Header navigation={navigation} title="Memorise" buttons={buttons} />
       <ContentView>
-        <View style={{ display: "flex", justifyContent: "space-between", height: '100%' }}>
+        <View
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            height: "100%",
+          }}
+        >
           <View style={{ flex: 1 }}>
             <View
               style={{
@@ -94,8 +114,8 @@ export default function Card({ navigation, route }) {
                 borderColor: ColorScheme.get().secondary,
                 padding: SizeScheme.get().gap.pad,
                 borderRadius: 5,
-                maxHeight: SizeScheme.get().screen.height.window/2,
-                overflow: 'scroll'
+                maxHeight: SizeScheme.get().screen.height.window / 2,
+                overflow: "scroll",
               }}
             >
               <Text style={{ fontSize: SizeScheme.get().font.b }}>
@@ -126,10 +146,53 @@ export default function Card({ navigation, route }) {
               />
             )}
 
-            <Takoz/>
+            <Takoz />
           </View>
         </View>
       </ContentView>
+
+      <Modal
+        visible={showModal}
+        handleClose={() => {
+          setShowModal(false);
+        }}
+      >
+        <Input
+          label="Key"
+          value={[card.key]}
+          handleChange={(val) => {
+            const newCardLocal = { ...card };
+            newCardLocal.key = val[0];
+            setCard(newCardLocal);
+          }}
+          type={InputTypes.TEXT}
+        />
+
+        <Input
+          label="Value"
+          value={[card.value]}
+          handleChange={(val) => {
+            const newCardLocal = { ...card };
+            newCardLocal.value = val[0];
+            setCard(newCardLocal);
+          }}
+          type={InputTypes.TEXT}
+          settings={[Settings.TEXT_MULTILINE_6]}
+        />
+
+        <Takoz />
+
+        <ButtonText
+          label="Save"
+          handleClick={async () => {
+            const localTopics = JSON.parse(await asyncTopics.getItem());
+            localTopics[route.params.topicIndex].cards[route.params.cardIndex] = card;
+            await asyncTopics.setItem(JSON.stringify(localTopics));
+            await load();
+            setShowModal(false);
+          }}
+        />
+      </Modal>
     </Layout>
   );
 }
