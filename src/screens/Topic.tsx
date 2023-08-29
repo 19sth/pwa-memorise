@@ -17,6 +17,8 @@ import {
   faArrowUpRightFromSquare,
   faPersonRunning,
   faPlus,
+  faSquare,
+  faSquareCheck,
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
@@ -59,10 +61,7 @@ export default function Topic({ navigation, route }) {
             faIcon: faTrashCan,
             handleClick: async () => {
               const localTopics = [...topics];
-              localTopics.splice(
-                route.params.topicIndex,
-                1
-              );
+              localTopics.splice(route.params.topicIndex, 1);
               await asyncTopics.setItem(JSON.stringify(localTopics));
               navigation.goBack();
             },
@@ -82,6 +81,7 @@ export default function Topic({ navigation, route }) {
               setNewCard({
                 key: "",
                 value: "",
+                learned: false
               });
               setShowModal(true);
             },
@@ -113,7 +113,18 @@ export default function Topic({ navigation, route }) {
                     {e.key}
                   </Text>
                 </View>
-                <View>
+                <View style={{display:"flex", flexDirection:"row"}}>
+                  <ButtonIcon
+                    faIcon={ (e.learned === true) ? faSquareCheck : faSquare}
+                    handleClick={ async () => {
+                      const localTopics = [...topics];
+                      e.learned = (e.learned === true)? false: true;
+                      localTopics[route.params.topicIndex].cards[ix].learned = e.learned;
+                      await asyncTopics.setItem(JSON.stringify(localTopics));
+                      setTopics(localTopics);
+                    }}
+                  />
+                  <Takoz/>
                   <ButtonIcon
                     faIcon={faArrowUpRightFromSquare}
                     handleClick={() => {

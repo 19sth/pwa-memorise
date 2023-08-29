@@ -1,6 +1,7 @@
 export interface ICard {
   key: string;
   value: string;
+  learned: boolean;
 }
 
 export interface ITopic {

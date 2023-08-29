@@ -15,7 +15,7 @@ import { faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { View, Text } from "react-native";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
-import { ICard, ITopic, KEY_TOPICS, createShuffledIndices } from "../util";
+import { ICard, ITopic, KEY_TOPICS, shuffleArray } from "../util";
 import { useEffect, useState } from "react";
 
 export default function Card({ navigation, route }) {
@@ -48,8 +48,11 @@ export default function Card({ navigation, route }) {
         setCard(topics[route.params.topicIndex].cards[route.params.cardIndex]);
         setSecret(0);
       } else if (route.params.training === true) {
-        const shuffledIndices = createShuffledIndices(
-          topics[route.params.topicIndex].cards.length
+        const shuffledIndices = shuffleArray(
+          topics[route.params.topicIndex].cards
+            .map((e, ix) => ({ o: e, i: ix }))
+            .filter((e) => e.o.learned !== true)
+            .map((e) => e.i)
         );
         setShuffled(shuffledIndices);
         setCard(
@@ -77,7 +80,7 @@ export default function Card({ navigation, route }) {
       faIcon: faPen,
       handleClick: async () => {
         setShowModal(true);
-      }
+      },
     });
   }
 
@@ -138,7 +141,7 @@ export default function Card({ navigation, route }) {
                     const localCards = topics[route.params.topicIndex].cards;
                     setSecret(Math.floor(Math.random() * 2) + 1);
                     setTrainingStep(0);
-                    let pivot = (shufflePivot + 1) % localCards.length;
+                    let pivot = (shufflePivot + 1) % shuffled.length;
                     setCard(localCards[shuffled[pivot]]);
                     setShufflePivot(pivot);
                   }
@@ -186,7 +189,8 @@ export default function Card({ navigation, route }) {
           label="Save"
           handleClick={async () => {
             const localTopics = JSON.parse(await asyncTopics.getItem());
-            localTopics[route.params.topicIndex].cards[route.params.cardIndex] = card;
+            localTopics[route.params.topicIndex].cards[route.params.cardIndex] =
+              card;
             await asyncTopics.setItem(JSON.stringify(localTopics));
             await load();
             setShowModal(false);
